@@ -1,0 +1,840 @@
+<!-- NomeDoApp = "Conversor Laboratorial" -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#17324d">
+  <title>Conversor Laboratorial — mg/dL ↔ mmol/L</title>
+  <style>
+    :root {
+      --bg: #eef4fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fbff;
+      --primary: #1e4f8a;
+      --primary-strong: #173b66;
+      --border: #cddbea;
+      --text: #16324c;
+      --muted: #61778f;
+      --success: #0f6a47;
+      --success-bg: #e7f8ef;
+      --warning: #8a5a12;
+      --warning-bg: #fff6df;
+      --danger: #9f1d1d;
+      --danger-bg: #fdeeee;
+      --shadow: 0 16px 34px rgba(18, 44, 73, 0.10);
+      --radius-xl: 22px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(30, 79, 138, 0.10), transparent 28%),
+        linear-gradient(180deg, #edf4fb 0%, #f7fbff 100%);
+      color: var(--text);
+      padding: 18px 12px 28px;
+    }
+
+    .app {
+      width: min(920px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero,
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 20px;
+      background: linear-gradient(135deg, #f8fbff 0%, #edf5ff 100%);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: #fff0b8;
+      color: #463600;
+      font-size: clamp(1.35rem, 3.5vw, 2.05rem);
+      line-height: 1.05;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      margin-bottom: 14px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.35rem, 3.5vw, 2.05rem);
+      line-height: 1.05;
+      color: var(--primary-strong);
+      text-align: center;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 64ch;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 16px;
+    }
+
+    .card { padding: 18px; }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--primary-strong);
+      letter-spacing: 0.02em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--primary-strong);
+    }
+
+    .hint {
+      font-size: 0.74rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 50px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface-soft);
+      color: var(--text);
+      font-size: 16px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    input:focus,
+    select:focus {
+      background: #ffffff;
+      border-color: #5a93d6;
+      box-shadow: 0 0 0 4px rgba(90, 147, 214, 0.16);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      min-height: 48px;
+      border: 0;
+      border-radius: var(--radius-md);
+      padding: 0 18px;
+      font-size: 0.94rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.18s ease;
+    }
+
+    button:active { transform: scale(0.98); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover { background: var(--primary-strong); }
+
+    .btn-secondary {
+      background: #eef3f8;
+      color: #35506b;
+      border: 1px solid #d6e1eb;
+    }
+
+    .btn-secondary:hover { background: #e4edf6; }
+
+    .alert {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      line-height: 1.45;
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid #f5c9c9;
+    }
+
+    .result-panel {
+      display: grid;
+      gap: 14px;
+    }
+
+    .result-box,
+    .note-box {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+    }
+
+    .result-box.primary {
+      background: linear-gradient(180deg, #eff6ff 0%, #f8fbff 100%);
+      border-color: #bfd5ef;
+    }
+
+    .result-label {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .result-value {
+      font-size: clamp(1.45rem, 3.5vw, 2.2rem);
+      font-weight: 900;
+      color: var(--primary-strong);
+      line-height: 1.1;
+      word-break: break-word;
+    }
+
+    .result-subtitle {
+      margin-top: 8px;
+      font-size: 0.92rem;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .meta-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .meta-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      border-top: 1px dashed #dbe5ef;
+      padding-top: 10px;
+    }
+
+    .meta-item:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .meta-key {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .meta-value {
+      text-align: right;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      width: fit-content;
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid #f4da9b;
+    }
+
+    .status.success {
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: #b8ebcc;
+    }
+
+    code.inline {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9em;
+      background: #f2f7fd;
+      border: 1px solid #dce8f5;
+      border-radius: 8px;
+      padding: 2px 6px;
+      color: var(--primary-strong);
+    }
+
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 14px 10px 24px; }
+      .app { gap: 14px; }
+      .hero, .card {
+        border-radius: 18px;
+        padding: 16px;
+      }
+
+      .badge {
+        width: fit-content;
+        max-width: 100%;
+        flex-wrap: wrap;
+      }
+      .grid { grid-template-columns: 1fr; }
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+      .actions button { width: 100%; }
+      .meta-item { flex-direction: column; }
+      .meta-value { text-align: left; }
+    }
+  
+    .espaco-antes-caixa-titulo {
+      height: 1em;
+    }
+  
+    .legal-disclaimer{
+      margin-top:16px;
+      padding:0;
+      border:1px solid #e2e8f0;
+      border-radius:14px;
+      background:#f8fafc;
+      box-shadow:none;
+      color:#64748b;
+      font-size:.76rem;
+      line-height:1.45;
+      text-align:left;
+      overflow:hidden;
+    }
+    .legal-disclaimer > summary{
+      list-style:none;
+      cursor:pointer;
+      position:relative;
+      padding:11px 38px 11px 13px;
+      color:#5c6f87;
+      font-size:.78rem;
+      font-weight:700;
+      user-select:none;
+    }
+    .legal-disclaimer > summary::-webkit-details-marker{display:none}
+    .legal-disclaimer > summary::after{
+      content:'＋';
+      position:absolute;
+      right:13px;
+      top:50%;
+      transform:translateY(-50%);
+      color:#7b8da0;
+      font-size:.9rem;
+      font-weight:800;
+    }
+    .legal-disclaimer[open] > summary::after{content:'−'}
+    .legal-disclaimer-content{
+      padding:0 13px 12px;
+      border-top:1px solid #edf2f7;
+      padding-top:11px;
+      text-align:justify;
+      overflow-wrap:anywhere;
+    }
+
+    .signature-block {
+      text-align: center;
+      color: #5c6f87;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+
+    .spacer-3lines {
+      height: 4.2em;
+    }
+  </style>
+  <!-- AndroidVersionName="1.11.10.11" VersionName="1.11.10.11" AndroidVersionCode="262840743" VersionCode="262840743" BuildTimestamp="2026-09-13T12:47:00-03:00" -->
+</head>
+<body>
+  <main class="app" id="screenLabConverter">
+    <div class="espaco-antes-caixa-titulo" aria-hidden="true"></div>
+    <section class="hero" id="sectionHero">
+      <div class="badge">🧪 Conversor Laboratorial</div>
+      <h1>mg/dL ↔ mmol/L</h1>
+      
+    </section>
+
+    <section class="layout">
+      <section class="card" id="sectionInput">
+        <h2 class="section-title">Entrada</h2>
+
+        <div class="grid">
+          <div class="field full">
+            <label for="analyte">Molécula</label>
+            <select id="analyte" name="analyte"></select>
+            <div class="hint">Selecione o analito que será convertido.</div>
+          </div>
+
+          <div class="field">
+            <label for="sourceUnit">Unidade de origem</label>
+            <select id="sourceUnit" name="sourceUnit"></select>
+            <div class="hint">As opções mudam conforme a molécula.</div>
+          </div>
+
+          <div class="field">
+            <label for="targetUnit">Unidade de destino</label>
+            <select id="targetUnit" name="targetUnit"></select>
+            <div class="hint">Destino compatível com a unidade de origem.</div>
+          </div>
+
+          <div class="field full">
+            <label for="inputValue">Valor</label>
+            <input id="inputValue" name="inputValue" type="text" inputmode="decimal" placeholder="Ex.: 100 ou 4,8" autocomplete="off">
+            <div class="hint">Aceita vírgula ou ponto decimal.</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" id="calculateButton" type="button">Calcular</button>
+          <button class="btn-secondary" id="clearButton" type="button">Limpar</button>
+        </div>
+
+        <div class="alert" id="errorBox" role="alert" aria-live="polite"></div>
+      </section>
+
+      <section class="card" id="resultCard">
+        <h2 class="section-title">Resultado</h2>
+
+        <div class="result-panel">
+          <div class="result-box primary">
+            <div class="result-label">Conversão</div>
+            <div class="result-value" id="resultValue">—</div>
+            <div class="result-subtitle" id="resultText">Informe um valor e selecione as unidades.</div>
+          </div>
+
+          <div class="result-box">
+            <div class="result-label">Detalhes</div>
+            <div class="meta-list">
+              <div class="meta-item">
+                <span class="meta-key">Molécula</span>
+                <span class="meta-value" id="detailAnalyte">—</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-key">Origem</span>
+                <span class="meta-value" id="detailSource">—</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-key">Destino</span>
+                <span class="meta-value" id="detailTarget">—</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-key">Coeficiente usado</span>
+                <span class="meta-value" id="detailFactor">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="note-box">
+            <div class="status" id="statusBadge"></div>
+            <div class="result-subtitle" id="statusText"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <details class="legal-disclaimer legal-disclaimer-collapsible">
+      <summary>Aviso Legal e Isenção de Responsabilidade</summary>
+      <div class="legal-disclaimer-content">
+        Este software e todas as informações nele contidas são fornecidos exclusivamente com propósitos educacionais e de auxílio à referência médica. ESTE SISTEMA NÃO SUBSTITUI O JULGAMENTO CLÍNICO INDIVIDUAL, A ANAMNESE E O EXAME FÍSICO. As informações aqui apresentadas não devem ser utilizadas isoladamente para o diagnóstico, conduta ou tratamento de pacientes. A responsabilidade final por qualquer decisão clínica, prescrição ou intervenção é exclusiva do profissional de saúde assistente, devidamente habilitado. Os desenvolvedores não garantem a precisão absoluta de todos os dados e isentam-se de responsabilidade por quaisquer danos diretos, indiretos, materiais ou morais que resultem do uso inadequado, interpretação equivocada ou confiança exclusiva nas informações deste sistema. Pacientes e indivíduos leigos que utilizarem este software devem sempre buscar a orientação de um médico qualificado antes de tomar qualquer decisão sobre sua saúde.
+      </div>
+    </details>
+
+    <div class="signature-block"><strong>Desenvolvido por Adão L. L. Couto</strong><br><span class="version-name">1.10.09.13</span></div>
+
+    <div class="spacer-3lines" aria-hidden="true"></div>
+
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      // constants
+      const UNIT_LABELS = Object.freeze({
+        mgdl: 'mg/dL',
+        mmoll: 'mmol/L',
+        umoll: 'µmol/L'
+      });
+
+      const ANALYTES = Object.freeze([
+        { id: 'urea', label: 'Ureia', pairs: Object.freeze({ 'mgdl:mmoll': 0.1665, 'mmoll:mgdl': 6.0069 }) },
+        { id: 'bun', label: 'BUN', pairs: Object.freeze({ 'mgdl:mmoll': 0.3651, 'mmoll:mgdl': 2.808 }) },
+        { id: 'sodium', label: 'Sódio', pairs: Object.freeze({ 'mgdl:mmoll': 0.435, 'mmoll:mgdl': 2.2989 }) },
+        { id: 'potassium', label: 'Potássio', pairs: Object.freeze({ 'mgdl:mmoll': 0.2557, 'mmoll:mgdl': 3.9102 }) },
+        { id: 'calcium', label: 'Cálcio', pairs: Object.freeze({ 'mgdl:mmoll': 0.2495, 'mmoll:mgdl': 4.008 }) },
+        { id: 'magnesium', label: 'Magnésio', pairs: Object.freeze({ 'mgdl:mmoll': 0.4113, 'mmoll:mgdl': 2.4312 }) },
+        { id: 'phosphate', label: 'Fosfato', pairs: Object.freeze({ 'mgdl:mmoll': 0.3229, 'mmoll:mgdl': 3.0974 }) },
+        { id: 'chloride', label: 'Cloreto', pairs: Object.freeze({ 'mgdl:mmoll': 0.2821, 'mmoll:mgdl': 3.5453 }) },
+        { id: 'creatinine', label: 'Creatinina', pairs: Object.freeze({ 'mgdl:umoll': 88.402, 'umoll:mgdl': 0.0113 }) },
+        { id: 'bilirubin', label: 'Bilirrubina', pairs: Object.freeze({ 'mgdl:umoll': 17.1, 'umoll:mgdl': 0.05848 }) },
+        { id: 'uric_acid', label: 'Ácido úrico', pairs: Object.freeze({ 'mgdl:mmoll': 59.48, 'mmoll:mgdl': 0.0168 }) },
+        { id: 'cholesterol', label: 'Colesterol', pairs: Object.freeze({ 'mgdl:mmoll': 0.26, 'mmoll:mgdl': 380.66 }) },
+        { id: 'triglycerides', label: 'Triglicerídeos', pairs: Object.freeze({ 'mgdl:mmoll': 0.0114, 'mmoll:mgdl': 87.5 }) },
+        { id: 'glucose', label: 'Glicose', pairs: Object.freeze({ 'mgdl:mmoll': 0.0555, 'mmoll:mgdl': 18.016 }) },
+        { id: 'lactate', label: 'Lactato', pairs: Object.freeze({ 'mgdl:mmoll': 0.111, 'mmoll:mgdl': 9.008 }) }
+      ]);
+
+      // dom refs
+      const DOM = {
+        analyte: document.getElementById('analyte'),
+        sourceUnit: document.getElementById('sourceUnit'),
+        targetUnit: document.getElementById('targetUnit'),
+        inputValue: document.getElementById('inputValue'),
+        calculateButton: document.getElementById('calculateButton'),
+        clearButton: document.getElementById('clearButton'),
+        errorBox: document.getElementById('errorBox'),
+        resultCard: document.getElementById('resultCard'),
+        resultValue: document.getElementById('resultValue'),
+        resultText: document.getElementById('resultText'),
+        detailAnalyte: document.getElementById('detailAnalyte'),
+        detailSource: document.getElementById('detailSource'),
+        detailTarget: document.getElementById('detailTarget'),
+        detailFactor: document.getElementById('detailFactor'),
+        statusBadge: document.getElementById('statusBadge'),
+        statusText: document.getElementById('statusText')
+      };
+
+      // state
+      const UI_STATE = {
+        lastResult: null
+      };
+
+      // parsers
+      const getAnalyteById = (id) => ANALYTES.find((item) => item.id === id) || null;
+      const buildPairKey = (sourceUnit, targetUnit) => `${sourceUnit}:${targetUnit}`;
+
+      function parseLocaleNumber(value) {
+        if (typeof value !== 'string') return Number(value);
+
+        let normalized = value.trim().replace(/\s+/g, '');
+        if (!normalized) return NaN;
+
+        const hasComma = normalized.includes(',');
+        const hasDot = normalized.includes('.');
+
+        if (hasComma && hasDot) {
+          normalized = normalized.lastIndexOf(',') > normalized.lastIndexOf('.')
+            ? normalized.replace(/\./g, '').replace(',', '.')
+            : normalized.replace(/,/g, '');
+        } else if (hasComma) {
+          normalized = normalized.replace(',', '.');
+        }
+
+        return Number(normalized);
+      }
+
+      // formatters
+      function formatNumber(value, decimals = 2) {
+        if (!Number.isFinite(value)) return '';
+        return value.toLocaleString('pt-BR', {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals
+        });
+      }
+
+      function formatFactor(value) {
+        if (!Number.isFinite(value)) return '—';
+        return value.toLocaleString('pt-BR', { maximumFractionDigits: 6 });
+      }
+
+      // validators
+      function getAllowedUnits(analyte) {
+        const units = new Set();
+        Object.keys(analyte.pairs).forEach((pairKey) => {
+          const [sourceUnit, targetUnit] = pairKey.split(':');
+          units.add(sourceUnit);
+          units.add(targetUnit);
+        });
+        return Array.from(units);
+      }
+
+      function getAvailableTargets(analyte, sourceUnit) {
+        return Object.keys(analyte.pairs)
+          .map((pairKey) => pairKey.split(':'))
+          .filter(([pairSource]) => pairSource === sourceUnit)
+          .map(([, pairTarget]) => pairTarget);
+      }
+
+      // calculators
+      function convertValue({ analyteId, sourceUnit, targetUnit, numericValue }) {
+        const analyte = getAnalyteById(analyteId);
+        if (!analyte) throw new Error('Selecione uma molécula válida.');
+        if (!Number.isFinite(numericValue) || numericValue <= 0) throw new Error('Informe um valor numérico maior que zero.');
+
+        const pairKey = buildPairKey(sourceUnit, targetUnit);
+        const factor = analyte.pairs[pairKey];
+        if (!Number.isFinite(factor)) throw new Error('A combinação de unidades não é compatível com a molécula selecionada.');
+
+        return {
+          analyte,
+          sourceUnit,
+          targetUnit,
+          factor,
+          inputValue: numericValue,
+          outputValue: numericValue * factor
+        };
+      }
+
+      function getCurrentConversionInput() {
+        return {
+          analyteId: DOM.analyte.value,
+          sourceUnit: DOM.sourceUnit.value,
+          targetUnit: DOM.targetUnit.value,
+          numericValue: parseLocaleNumber(DOM.inputValue.value)
+        };
+      }
+
+      // ui renderers
+      function scrollToResult() {
+        DOM.resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      function showError(message) {
+        DOM.errorBox.textContent = message;
+        DOM.errorBox.style.display = 'block';
+      }
+
+      function clearError() {
+        DOM.errorBox.textContent = '';
+        DOM.errorBox.style.display = 'none';
+      }
+
+      function renderEmptyState() {
+        UI_STATE.lastResult = null;
+        DOM.resultValue.textContent = '—';
+        DOM.resultText.textContent = 'Informe um valor e selecione as unidades.';
+        DOM.detailAnalyte.textContent = '—';
+        DOM.detailSource.textContent = '—';
+        DOM.detailTarget.textContent = '—';
+        DOM.detailFactor.textContent = '—';
+        DOM.statusBadge.className = 'status';
+        DOM.statusBadge.textContent = '';
+        DOM.statusText.textContent = '';
+      }
+
+      function renderResult(result) {
+        UI_STATE.lastResult = result;
+        DOM.resultValue.textContent = `${formatNumber(result.outputValue, 2)} ${UNIT_LABELS[result.targetUnit]}`;
+        DOM.resultText.textContent = `${formatNumber(result.inputValue, 2)} ${UNIT_LABELS[result.sourceUnit]} correspondem a ${formatNumber(result.outputValue, 2)} ${UNIT_LABELS[result.targetUnit]}.`;
+        DOM.detailAnalyte.textContent = result.analyte.label;
+        DOM.detailSource.textContent = UNIT_LABELS[result.sourceUnit];
+        DOM.detailTarget.textContent = UNIT_LABELS[result.targetUnit];
+        DOM.detailFactor.textContent = `× ${formatFactor(result.factor)}`;
+        DOM.statusBadge.className = 'status success';
+        DOM.statusBadge.textContent = 'Conversão concluída';
+        DOM.statusText.textContent = '';
+      }
+
+      function renderSelectOptions(selectElement, unitIds) {
+        selectElement.innerHTML = unitIds
+          .map((unit) => `<option value="${unit}">${UNIT_LABELS[unit]}</option>`)
+          .join('');
+      }
+
+      function renderUnitSelectors() {
+        const analyte = getAnalyteById(DOM.analyte.value);
+        const allowedUnits = getAllowedUnits(analyte);
+
+        renderSelectOptions(DOM.sourceUnit, allowedUnits);
+
+        const availableTargets = getAvailableTargets(analyte, DOM.sourceUnit.value || allowedUnits[0]);
+        renderSelectOptions(DOM.targetUnit, availableTargets);
+      }
+
+      function updateTargetUnitsOnly() {
+        const analyte = getAnalyteById(DOM.analyte.value);
+        const availableTargets = getAvailableTargets(analyte, DOM.sourceUnit.value);
+        renderSelectOptions(DOM.targetUnit, availableTargets);
+      }
+
+      // event handlers
+      function calculateAndRender(shouldScroll = false) {
+        clearError();
+
+        try {
+          const conversionInput = getCurrentConversionInput();
+
+          if (!Number.isFinite(conversionInput.numericValue) || conversionInput.numericValue === 0) {
+            renderEmptyState();
+            return null;
+          }
+
+          const result = convertValue(conversionInput);
+          renderResult(result);
+          if (shouldScroll) setTimeout(scrollToResult, 120);
+          return result;
+        } catch (error) {
+          renderEmptyState();
+          showError(error.message || 'Não foi possível calcular.');
+          if (shouldScroll) setTimeout(scrollToResult, 120);
+          return null;
+        }
+      }
+
+      function hasValidNonZeroInput() {
+        const numericValue = parseLocaleNumber(DOM.inputValue.value);
+        return Number.isFinite(numericValue) && numericValue !== 0;
+      }
+
+      function refreshEmptyStateIfNeeded() {
+        if (!DOM.inputValue.value.trim() || !hasValidNonZeroInput()) {
+          clearError();
+          renderEmptyState();
+        }
+      }
+
+      function clearForm() {
+        DOM.inputValue.value = '';
+        clearError();
+        renderUnitSelectors();
+        renderEmptyState();
+      }
+
+      function runSelfTests() {
+        const tests = [
+          () => {
+            const result = convertValue({ analyteId: 'glucose', sourceUnit: 'mgdl', targetUnit: 'mmoll', numericValue: 100 });
+            if (Math.abs(result.outputValue - 5.55) > 1e-9) throw new Error('Falha no teste de glicose.');
+          },
+          () => {
+            const result = convertValue({ analyteId: 'creatinine', sourceUnit: 'mgdl', targetUnit: 'umoll', numericValue: 1 });
+            if (Math.abs(result.outputValue - 88.402) > 1e-9) throw new Error('Falha no teste de creatinina.');
+          },
+          () => {
+            let failed = false;
+            try {
+              convertValue({ analyteId: 'bilirubin', sourceUnit: 'mgdl', targetUnit: 'mmoll', numericValue: 10 });
+            } catch (_) {
+              failed = true;
+            }
+            if (!failed) throw new Error('Falha na validação de unidade inválida.');
+          }
+        ];
+
+        tests.forEach((test) => test());
+        return { ok: true, count: tests.length };
+      }
+
+      // bootstrap
+      function bootstrap() {
+        DOM.analyte.innerHTML = ANALYTES
+          .map((analyte) => `<option value="${analyte.id}">${analyte.label}</option>`)
+          .join('');
+
+        renderUnitSelectors();
+        renderEmptyState();
+
+        DOM.analyte.addEventListener('change', () => {
+          renderUnitSelectors();
+        });
+
+        DOM.sourceUnit.addEventListener('change', () => {
+          updateTargetUnitsOnly();
+        });
+
+        DOM.targetUnit.addEventListener('change', () => {
+          // mudar apenas a seleção não deve enviar automaticamente ao resultado
+        });
+
+        DOM.inputValue.addEventListener('input', () => {
+          clearError();
+          if (!DOM.inputValue.value.trim()) {
+            renderEmptyState();
+          }
+        });
+
+        DOM.inputValue.addEventListener('blur', () => {
+          if (hasValidNonZeroInput()) {
+            calculateAndRender(true);
+          } else {
+            refreshEmptyStateIfNeeded();
+          }
+        });
+
+        DOM.calculateButton.addEventListener('click', () => calculateAndRender(true));
+        DOM.clearButton.addEventListener('click', clearForm);
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' && document.activeElement && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) {
+            event.preventDefault();
+            calculateAndRender(true);
+          }
+        });
+      }
+
+      window.LabConverterEngine = Object.freeze({
+        UNIT_LABELS,
+        ANALYTES,
+        getAnalyteById,
+        parseLocaleNumber,
+        buildPairKey,
+        getAllowedUnits,
+        getAvailableTargets,
+        convertValue,
+        formatNumber,
+        runSelfTests
+      });
+
+      bootstrap();
+    })();
+  </script>
+</body>
+</html>
