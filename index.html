@@ -99,7 +99,9 @@
       gap: 16px;
     }
 
-    .card { padding: 18px; }
+    .card { padding: 18px; min-width: 0; }
+
+    [hidden] { display: none !important; }
 
     .section-title {
       margin: 0 0 14px;
@@ -119,6 +121,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
+      min-width: 0;
     }
 
     .field.full { grid-column: 1 / -1; }
@@ -142,8 +145,10 @@
     }
 
     input,
-    select {
+    select,
+    .unit-display {
       width: 100%;
+      min-width: 0;
       min-height: 50px;
       border: 1.5px solid var(--border);
       border-radius: var(--radius-md);
@@ -153,6 +158,21 @@
       padding: 12px 14px;
       outline: none;
       transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .unit-display { display: flex; align-items: center; }
+    .value-with-unit { display: flex; align-items: center; gap: 8px; }
+    .value-with-unit input { flex: 1; }
+    .value-unit { font-size: 0.86rem; color: var(--muted); white-space: nowrap; }
+    input[aria-invalid="true"],
+    input[aria-invalid="true"]:focus {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgba(159, 29, 29, 0.14);
+    }
+    .auto-updated {
+      background: #dbeafe !important;
+      border-radius: 6px;
+      box-shadow: 0 0 0 2px rgba(90, 147, 214, 0.28);
     }
 
     input:focus,
@@ -223,7 +243,7 @@
     }
 
     .result-box.primary {
-      background: linear-gradient(180deg, #eff6ff 0%, #f8fbff 100%);
+      background: linear-gradient(180deg, #fffdfa 0%, #fff8dd 100%);
       border-color: #bfd5ef;
     }
 
@@ -332,10 +352,10 @@
         max-width: 100%;
         flex-wrap: wrap;
       }
-      .grid { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .actions {
         display: grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
       .actions button { width: 100%; }
       .meta-item { flex-direction: column; }
@@ -408,7 +428,7 @@
     <div class="espaco-antes-caixa-titulo" aria-hidden="true"></div>
     <section class="hero" id="sectionHero">
       <div class="badge">🧪 Conversor Laboratorial</div>
-      <h1>mg/dL ↔ mmol/L</h1>
+      <h1 id="conversionTitle">mg/dL ↔ mmol/L</h1>
       
     </section>
 
@@ -420,25 +440,26 @@
           <div class="field full">
             <label for="analyte">Molécula</label>
             <select id="analyte" name="analyte"></select>
-            <div class="hint">Selecione o analito que será convertido.</div>
           </div>
 
           <div class="field">
             <label for="sourceUnit">Unidade de origem</label>
             <select id="sourceUnit" name="sourceUnit"></select>
-            <div class="hint">As opções mudam conforme a molécula.</div>
           </div>
 
           <div class="field">
             <label for="targetUnit">Unidade de destino</label>
-            <select id="targetUnit" name="targetUnit"></select>
-            <div class="hint">Destino compatível com a unidade de origem.</div>
+            <output id="targetUnit" name="targetUnit" class="unit-display" aria-live="polite"></output>
           </div>
 
           <div class="field full">
             <label for="inputValue">Valor</label>
-            <input id="inputValue" name="inputValue" type="text" inputmode="decimal" placeholder="Ex.: 100 ou 4,8" autocomplete="off">
-            <div class="hint">Aceita vírgula ou ponto decimal.</div>
+            <div class="value-with-unit">
+              <input id="inputValue" name="inputValue" type="text" inputmode="decimal" enterkeyhint="done" placeholder="Ex.: 100 ou 4,8" autocomplete="off" aria-describedby="inputValueUnit inputValueHint" aria-invalid="false">
+              <span class="value-unit" id="inputValueUnit">mg/dL</span>
+            </div>
+            <div class="hint" id="inputValueHint">Aceita vírgula ou ponto decimal.</div>
+            <div class="alert" id="errorBox" role="alert" aria-atomic="true"></div>
           </div>
         </div>
 
@@ -447,20 +468,19 @@
           <button class="btn-secondary" id="clearButton" type="button">Limpar</button>
         </div>
 
-        <div class="alert" id="errorBox" role="alert" aria-live="polite"></div>
       </section>
 
       <section class="card" id="resultCard">
         <h2 class="section-title">Resultado</h2>
 
         <div class="result-panel">
-          <div class="result-box primary">
+          <div class="result-box primary" id="conversionSummary" role="status" aria-live="polite" aria-atomic="true">
             <div class="result-label">Conversão</div>
             <div class="result-value" id="resultValue">—</div>
             <div class="result-subtitle" id="resultText">Informe um valor e selecione as unidades.</div>
           </div>
 
-          <div class="result-box">
+          <div class="result-box" id="detailsBox" hidden>
             <div class="result-label">Detalhes</div>
             <div class="meta-list">
               <div class="meta-item">
@@ -482,7 +502,7 @@
             </div>
           </div>
 
-          <div class="note-box">
+          <div class="note-box" id="conversionStatus" hidden>
             <div class="status" id="statusBadge"></div>
             <div class="result-subtitle" id="statusText"></div>
           </div>
@@ -514,22 +534,35 @@
         umoll: 'µmol/L'
       });
 
+      function defineAnalyte(id, label, siUnit, factor) {
+        return Object.freeze({ id, label, pairs: Object.freeze({
+          [`mgdl:${siUnit}`]: factor,
+          [`${siUnit}:mgdl`]: 1 / factor
+        }) });
+      }
+
+      // Fatores clínicos: CDC/NHANES BIOPRO_E, Labcorp e NIH/ARIC.
+      // https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2007/DataFiles/BIOPRO_E.htm
+      // https://www.labcorp.com/test-menu/resources/si-unit-conversion-table
+      // https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/document.cgi?phd=2881&study_id=phs000280.v4.p1
+      // Ureia: NIST, massa molar 60,0553. Na/K/Cl: pesos atômicos CIAAW.
+      // Fosfato: convenção laboratorial em mg/dL de fósforo, não massa de PO4.
       const ANALYTES = Object.freeze([
-        { id: 'urea', label: 'Ureia', pairs: Object.freeze({ 'mgdl:mmoll': 0.1665, 'mmoll:mgdl': 6.0069 }) },
-        { id: 'bun', label: 'BUN', pairs: Object.freeze({ 'mgdl:mmoll': 0.3651, 'mmoll:mgdl': 2.808 }) },
-        { id: 'sodium', label: 'Sódio', pairs: Object.freeze({ 'mgdl:mmoll': 0.435, 'mmoll:mgdl': 2.2989 }) },
-        { id: 'potassium', label: 'Potássio', pairs: Object.freeze({ 'mgdl:mmoll': 0.2557, 'mmoll:mgdl': 3.9102 }) },
-        { id: 'calcium', label: 'Cálcio', pairs: Object.freeze({ 'mgdl:mmoll': 0.2495, 'mmoll:mgdl': 4.008 }) },
-        { id: 'magnesium', label: 'Magnésio', pairs: Object.freeze({ 'mgdl:mmoll': 0.4113, 'mmoll:mgdl': 2.4312 }) },
-        { id: 'phosphate', label: 'Fosfato', pairs: Object.freeze({ 'mgdl:mmoll': 0.3229, 'mmoll:mgdl': 3.0974 }) },
-        { id: 'chloride', label: 'Cloreto', pairs: Object.freeze({ 'mgdl:mmoll': 0.2821, 'mmoll:mgdl': 3.5453 }) },
-        { id: 'creatinine', label: 'Creatinina', pairs: Object.freeze({ 'mgdl:umoll': 88.402, 'umoll:mgdl': 0.0113 }) },
-        { id: 'bilirubin', label: 'Bilirrubina', pairs: Object.freeze({ 'mgdl:umoll': 17.1, 'umoll:mgdl': 0.05848 }) },
-        { id: 'uric_acid', label: 'Ácido úrico', pairs: Object.freeze({ 'mgdl:mmoll': 59.48, 'mmoll:mgdl': 0.0168 }) },
-        { id: 'cholesterol', label: 'Colesterol', pairs: Object.freeze({ 'mgdl:mmoll': 0.26, 'mmoll:mgdl': 380.66 }) },
-        { id: 'triglycerides', label: 'Triglicerídeos', pairs: Object.freeze({ 'mgdl:mmoll': 0.0114, 'mmoll:mgdl': 87.5 }) },
-        { id: 'glucose', label: 'Glicose', pairs: Object.freeze({ 'mgdl:mmoll': 0.0555, 'mmoll:mgdl': 18.016 }) },
-        { id: 'lactate', label: 'Lactato', pairs: Object.freeze({ 'mgdl:mmoll': 0.111, 'mmoll:mgdl': 9.008 }) }
+        defineAnalyte('urea', 'Ureia', 'mmoll', 0.1665),
+        defineAnalyte('bun', 'BUN', 'mmoll', 0.357),
+        defineAnalyte('sodium', 'Sódio', 'mmoll', 10 / 22.98976928),
+        defineAnalyte('potassium', 'Potássio', 'mmoll', 10 / 39.0983),
+        defineAnalyte('calcium', 'Cálcio', 'mmoll', 0.2495),
+        defineAnalyte('magnesium', 'Magnésio', 'mmoll', 0.4114),
+        defineAnalyte('phosphate', 'Fosfato', 'mmoll', 0.3229),
+        defineAnalyte('chloride', 'Cloreto', 'mmoll', 10 / 35.45),
+        defineAnalyte('creatinine', 'Creatinina', 'umoll', 88.4),
+        defineAnalyte('bilirubin', 'Bilirrubina', 'umoll', 17.1),
+        defineAnalyte('uric_acid', 'Ácido úrico', 'umoll', 59.48),
+        defineAnalyte('cholesterol', 'Colesterol', 'mmoll', 0.02586),
+        defineAnalyte('triglycerides', 'Triglicerídeos', 'mmoll', 0.01129),
+        defineAnalyte('glucose', 'Glicose', 'mmoll', 0.05551),
+        defineAnalyte('lactate', 'Lactato', 'mmoll', 0.111)
       ]);
 
       // dom refs
@@ -537,11 +570,16 @@
         analyte: document.getElementById('analyte'),
         sourceUnit: document.getElementById('sourceUnit'),
         targetUnit: document.getElementById('targetUnit'),
+        conversionTitle: document.getElementById('conversionTitle'),
+        inputValueUnit: document.getElementById('inputValueUnit'),
         inputValue: document.getElementById('inputValue'),
         calculateButton: document.getElementById('calculateButton'),
         clearButton: document.getElementById('clearButton'),
         errorBox: document.getElementById('errorBox'),
         resultCard: document.getElementById('resultCard'),
+        resultSummary: document.getElementById('conversionSummary'),
+        detailsBox: document.getElementById('detailsBox'),
+        conversionStatus: document.getElementById('conversionStatus'),
         resultValue: document.getElementById('resultValue'),
         resultText: document.getElementById('resultText'),
         detailAnalyte: document.getElementById('detailAnalyte'),
@@ -554,8 +592,17 @@
 
       // state
       const UI_STATE = {
-        lastResult: null
+        lastResult: null,
+        revision: 0,
+        replaceOnFirstEdit: false,
+        inputValue: '',
+        scrollTimer: null,
+        pointerControl: null,
+        deferredBlur: false
       };
+      const completedOutputs = new Map();
+      const feedbackTimers = new Map();
+      const outputIds = ['resultValue', 'resultText', 'detailAnalyte', 'detailSource', 'detailTarget', 'detailFactor'];
 
       // parsers
       const getAnalyteById = (id) => ANALYTES.find((item) => item.id === id) || null;
@@ -623,13 +670,15 @@
         const factor = analyte.pairs[pairKey];
         if (!Number.isFinite(factor)) throw new Error('A combinação de unidades não é compatível com a molécula selecionada.');
 
+        const outputValue = numericValue * factor;
+        if (!Number.isFinite(outputValue)) throw new Error('Não foi possível calcular.');
         return {
           analyte,
           sourceUnit,
           targetUnit,
           factor,
           inputValue: numericValue,
-          outputValue: numericValue * factor
+          outputValue
         };
       }
 
@@ -637,34 +686,101 @@
         return {
           analyteId: DOM.analyte.value,
           sourceUnit: DOM.sourceUnit.value,
-          targetUnit: DOM.targetUnit.value,
+          targetUnit: DOM.targetUnit.dataset.unit,
           numericValue: parseLocaleNumber(DOM.inputValue.value)
         };
       }
 
       // ui renderers
-      function scrollToResult() {
-        DOM.resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      function scrollOptions() {
+        const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        return { behavior: reducedMotion ? 'auto' : 'smooth', block: 'center', inline: 'nearest' };
       }
 
-      function showError(message) {
+      function cancelResultScroll() {
+        if (UI_STATE.scrollTimer !== null) window.clearTimeout(UI_STATE.scrollTimer);
+        UI_STATE.scrollTimer = null;
+      }
+
+      function scrollToResult() {
+        cancelResultScroll();
+        const revision = UI_STATE.revision;
+        UI_STATE.scrollTimer = window.setTimeout(() => {
+          UI_STATE.scrollTimer = null;
+          if (revision !== UI_STATE.revision || !UI_STATE.lastResult
+            || ['INPUT', 'SELECT'].includes(document.activeElement?.tagName)) return;
+          const bounds = DOM.resultSummary.getBoundingClientRect();
+          const viewportHeight = window.visualViewport?.height || window.innerHeight;
+          if (bounds.top < 0 || bounds.bottom > viewportHeight) {
+            DOM.resultSummary.scrollIntoView(scrollOptions());
+          }
+        }, 80);
+      }
+
+      function clearFeedback(id) {
+        if (feedbackTimers.has(id)) window.clearTimeout(feedbackTimers.get(id));
+        feedbackTimers.delete(id);
+        document.getElementById(id)?.classList.remove('auto-updated');
+      }
+
+      function flashUpdated(element) {
+        clearFeedback(element.id);
+        element.classList.add('auto-updated');
+        feedbackTimers.set(element.id, window.setTimeout(() => {
+          element.classList.remove('auto-updated');
+          feedbackTimers.delete(element.id);
+        }, 1000));
+      }
+
+      function setComputedText(element, text) {
+        const previous = completedOutputs.get(element.id);
+        if (element.textContent !== text) element.textContent = text;
+        if (previous !== undefined && previous !== text) flashUpdated(element);
+        completedOutputs.set(element.id, text);
+      }
+
+      function prepareValueEntry() {
+        cancelResultScroll();
+        UI_STATE.replaceOnFirstEdit = DOM.inputValue.value !== '';
+        UI_STATE.inputValue = DOM.inputValue.value;
+        DOM.inputValue.select();
+      }
+
+      function focusControl(control, center = false) {
+        control.focus({ preventScroll: true });
+        if (control === DOM.inputValue) prepareValueEntry();
+        if (center) control.closest('.field').scrollIntoView(scrollOptions());
+      }
+
+      function showError(message, restoreFocus = false) {
+        cancelResultScroll();
         DOM.errorBox.textContent = message;
         DOM.errorBox.style.display = 'block';
+        DOM.inputValue.setAttribute('aria-invalid', 'true');
+        DOM.inputValue.setAttribute('aria-describedby', 'inputValueUnit inputValueHint errorBox');
+        if (restoreFocus) focusControl(DOM.inputValue, true);
       }
 
       function clearError() {
         DOM.errorBox.textContent = '';
         DOM.errorBox.style.display = 'none';
+        DOM.inputValue.setAttribute('aria-invalid', 'false');
+        DOM.inputValue.setAttribute('aria-describedby', 'inputValueUnit inputValueHint');
       }
 
       function renderEmptyState() {
         UI_STATE.lastResult = null;
-        DOM.resultValue.textContent = '—';
-        DOM.resultText.textContent = 'Informe um valor e selecione as unidades.';
-        DOM.detailAnalyte.textContent = '—';
-        DOM.detailSource.textContent = '—';
-        DOM.detailTarget.textContent = '—';
-        DOM.detailFactor.textContent = '—';
+        outputIds.forEach(clearFeedback);
+        const emptyValues = {
+          resultValue: '—',
+          resultText: 'Informe um valor e selecione as unidades.',
+          detailAnalyte: '—', detailSource: '—', detailTarget: '—', detailFactor: '—'
+        };
+        Object.entries(emptyValues).forEach(([id, text]) => {
+          if (DOM[id].textContent !== text) DOM[id].textContent = text;
+        });
+        DOM.detailsBox.hidden = true;
+        DOM.conversionStatus.hidden = true;
         DOM.statusBadge.className = 'status';
         DOM.statusBadge.textContent = '';
         DOM.statusText.textContent = '';
@@ -672,12 +788,14 @@
 
       function renderResult(result) {
         UI_STATE.lastResult = result;
-        DOM.resultValue.textContent = `${formatNumber(result.outputValue, 2)} ${UNIT_LABELS[result.targetUnit]}`;
-        DOM.resultText.textContent = `${formatNumber(result.inputValue, 2)} ${UNIT_LABELS[result.sourceUnit]} correspondem a ${formatNumber(result.outputValue, 2)} ${UNIT_LABELS[result.targetUnit]}.`;
-        DOM.detailAnalyte.textContent = result.analyte.label;
-        DOM.detailSource.textContent = UNIT_LABELS[result.sourceUnit];
-        DOM.detailTarget.textContent = UNIT_LABELS[result.targetUnit];
-        DOM.detailFactor.textContent = `× ${formatFactor(result.factor)}`;
+        setComputedText(DOM.resultValue, `${formatNumber(result.outputValue, 2)} ${UNIT_LABELS[result.targetUnit]}`);
+        setComputedText(DOM.resultText, `${formatNumber(result.inputValue, 2)} ${UNIT_LABELS[result.sourceUnit]} correspondem a ${formatNumber(result.outputValue, 2)} ${UNIT_LABELS[result.targetUnit]}.`);
+        setComputedText(DOM.detailAnalyte, result.analyte.label);
+        setComputedText(DOM.detailSource, UNIT_LABELS[result.sourceUnit]);
+        setComputedText(DOM.detailTarget, UNIT_LABELS[result.targetUnit]);
+        setComputedText(DOM.detailFactor, `× ${formatFactor(result.factor)}`);
+        DOM.detailsBox.hidden = false;
+        DOM.conversionStatus.hidden = false;
         DOM.statusBadge.className = 'status success';
         DOM.statusBadge.textContent = 'Conversão concluída';
         DOM.statusText.textContent = '';
@@ -692,85 +810,133 @@
       function renderUnitSelectors() {
         const analyte = getAnalyteById(DOM.analyte.value);
         const allowedUnits = getAllowedUnits(analyte);
-
+        const previousSource = DOM.sourceUnit.value;
         renderSelectOptions(DOM.sourceUnit, allowedUnits);
-
-        const availableTargets = getAvailableTargets(analyte, DOM.sourceUnit.value || allowedUnits[0]);
-        renderSelectOptions(DOM.targetUnit, availableTargets);
+        if (allowedUnits.includes(previousSource)) DOM.sourceUnit.value = previousSource;
+        if (previousSource && previousSource !== DOM.sourceUnit.value) flashUpdated(DOM.sourceUnit);
+        updateTargetUnitsOnly();
       }
 
       function updateTargetUnitsOnly() {
         const analyte = getAnalyteById(DOM.analyte.value);
         const availableTargets = getAvailableTargets(analyte, DOM.sourceUnit.value);
-        renderSelectOptions(DOM.targetUnit, availableTargets);
+        const nextUnit = availableTargets[0];
+        const previousUnit = DOM.targetUnit.dataset.unit;
+        DOM.targetUnit.dataset.unit = nextUnit;
+        DOM.targetUnit.textContent = UNIT_LABELS[nextUnit];
+        if (previousUnit && previousUnit !== nextUnit) flashUpdated(DOM.targetUnit);
+        DOM.inputValueUnit.textContent = UNIT_LABELS[DOM.sourceUnit.value];
+        DOM.conversionTitle.textContent = `${UNIT_LABELS[DOM.sourceUnit.value]} ↔ ${UNIT_LABELS[nextUnit]}`;
       }
 
       // event handlers
-      function calculateAndRender(shouldScroll = false) {
+      function calculateAndRender({ shouldScroll = false, required = false, restoreFocus = false } = {}) {
         clearError();
-
+        if (!required && !DOM.inputValue.value.trim()) {
+          renderEmptyState();
+          return null;
+        }
         try {
           const conversionInput = getCurrentConversionInput();
-
-          if (!Number.isFinite(conversionInput.numericValue) || conversionInput.numericValue === 0) {
-            renderEmptyState();
-            return null;
-          }
-
           const result = convertValue(conversionInput);
           renderResult(result);
-          if (shouldScroll) setTimeout(scrollToResult, 120);
+          if (shouldScroll) scrollToResult();
           return result;
         } catch (error) {
           renderEmptyState();
-          showError(error.message || 'Não foi possível calcular.');
-          if (shouldScroll) setTimeout(scrollToResult, 120);
+          showError(error.message || 'Não foi possível calcular.', restoreFocus);
           return null;
         }
       }
 
-      function hasValidNonZeroInput() {
+      function recalculateSelection() {
+        UI_STATE.revision += 1;
+        cancelResultScroll();
+        renderEmptyState();
         const numericValue = parseLocaleNumber(DOM.inputValue.value);
-        return Number.isFinite(numericValue) && numericValue !== 0;
+        if (Number.isFinite(numericValue) && numericValue > 0) calculateAndRender();
       }
 
-      function refreshEmptyStateIfNeeded() {
-        if (!DOM.inputValue.value.trim() || !hasValidNonZeroInput()) {
-          clearError();
-          renderEmptyState();
-        }
+      function selectForFirstEdit() {
+        if (UI_STATE.replaceOnFirstEdit) DOM.inputValue.select();
       }
 
-      function clearForm() {
-        DOM.inputValue.value = '';
+      function handleValueInput() {
+        const normalized = DOM.inputValue.value.replace(/^([+-]?)[.,]/, (_, sign) => `${sign}0,`);
+        if (DOM.inputValue.value !== normalized) DOM.inputValue.value = normalized;
+        UI_STATE.replaceOnFirstEdit = false;
+        if (UI_STATE.inputValue === normalized) return;
+        UI_STATE.inputValue = normalized;
+        UI_STATE.revision += 1;
+        cancelResultScroll();
         clearError();
-        renderUnitSelectors();
         renderEmptyState();
       }
 
-      function runSelfTests() {
-        const tests = [
-          () => {
-            const result = convertValue({ analyteId: 'glucose', sourceUnit: 'mgdl', targetUnit: 'mmoll', numericValue: 100 });
-            if (Math.abs(result.outputValue - 5.55) > 1e-9) throw new Error('Falha no teste de glicose.');
-          },
-          () => {
-            const result = convertValue({ analyteId: 'creatinine', sourceUnit: 'mgdl', targetUnit: 'umoll', numericValue: 1 });
-            if (Math.abs(result.outputValue - 88.402) > 1e-9) throw new Error('Falha no teste de creatinina.');
-          },
-          () => {
-            let failed = false;
-            try {
-              convertValue({ analyteId: 'bilirubin', sourceUnit: 'mgdl', targetUnit: 'mmoll', numericValue: 10 });
-            } catch (_) {
-              failed = true;
-            }
-            if (!failed) throw new Error('Falha na validação de unidade inválida.');
-          }
-        ];
+      function clearForm() {
+        UI_STATE.revision += 1;
+        cancelResultScroll();
+        Array.from(feedbackTimers.keys()).forEach(clearFeedback);
+        completedOutputs.clear();
+        DOM.inputValue.value = '';
+        UI_STATE.inputValue = '';
+        UI_STATE.replaceOnFirstEdit = false;
+        clearError();
+        renderEmptyState();
+        focusControl(DOM.inputValue, true);
+      }
 
-        tests.forEach((test) => test());
-        return { ok: true, count: tests.length };
+      function runSelfTests() {
+        const references = [
+          ['urea', 'mmoll', 30, 4.995], ['bun', 'mmoll', 14, 4.998],
+          ['sodium', 'mmoll', 321.85676992, 140], ['potassium', 'mmoll', 15.63932, 4],
+          ['calcium', 'mmoll', 10, 2.495], ['magnesium', 'mmoll', 2, 0.8228],
+          ['phosphate', 'mmoll', 4, 1.2916], ['chloride', 'mmoll', 354.5, 100],
+          ['creatinine', 'umoll', 1, 88.4], ['bilirubin', 'umoll', 1, 17.1],
+          ['uric_acid', 'umoll', 6, 356.88], ['cholesterol', 'mmoll', 200, 5.172],
+          ['triglycerides', 'mmoll', 150, 1.6935], ['glucose', 'mmoll', 100, 5.551],
+          ['lactate', 'mmoll', 18, 1.998]
+        ];
+        let count = 0;
+        references.forEach(([analyteId, siUnit, input, expected]) => {
+          [false, true].forEach((inverse) => {
+            const result = convertValue({ analyteId, sourceUnit: inverse ? siUnit : 'mgdl',
+              targetUnit: inverse ? 'mgdl' : siUnit, numericValue: inverse ? expected : input });
+            const wanted = inverse ? input : expected;
+            if (Math.abs(result.outputValue - wanted) > 1e-9 * Math.max(1, wanted)) {
+              throw new Error(`Falha no teste de ${analyteId}.`);
+            }
+            count += 1;
+          });
+        });
+        let rejected = false;
+        try {
+          convertValue({ analyteId: 'bilirubin', sourceUnit: 'mgdl', targetUnit: 'mmoll', numericValue: 10 });
+        } catch (_) { rejected = true; }
+        if (!rejected) throw new Error('Falha na validação de unidade inválida.');
+        return { ok: true, count: count + 1 };
+      }
+
+      function handleFieldKeyDown(event) {
+        if (event.currentTarget === DOM.inputValue && event.key.length === 1
+          && !event.ctrlKey && !event.metaKey && !event.altKey) selectForFirstEdit();
+        if (event.key !== 'Enter' || event.isComposing) return;
+        event.preventDefault();
+        if (event.currentTarget === DOM.analyte) focusControl(DOM.sourceUnit, true);
+        else if (event.currentTarget === DOM.sourceUnit) focusControl(DOM.inputValue, true);
+        else if (calculateAndRender({ required: true, restoreFocus: true })) {
+          DOM.inputValue.blur();
+          scrollToResult();
+        }
+      }
+
+      function completePointerAction(event) {
+        const handledByButton = event.type === 'click'
+          && [DOM.calculateButton, DOM.clearButton].includes(event.target.closest('button'));
+        const shouldCalculate = UI_STATE.deferredBlur && !handledByButton;
+        UI_STATE.pointerControl = null;
+        UI_STATE.deferredBlur = false;
+        if (shouldCalculate) calculateAndRender();
       }
 
       // bootstrap
@@ -784,40 +950,45 @@
 
         DOM.analyte.addEventListener('change', () => {
           renderUnitSelectors();
+          recalculateSelection();
         });
 
         DOM.sourceUnit.addEventListener('change', () => {
           updateTargetUnitsOnly();
+          recalculateSelection();
         });
 
-        DOM.targetUnit.addEventListener('change', () => {
-          // mudar apenas a seleção não deve enviar automaticamente ao resultado
+        [DOM.analyte, DOM.sourceUnit, DOM.inputValue].forEach((field) => {
+          field.addEventListener('keydown', handleFieldKeyDown);
+          field.addEventListener('focus', cancelResultScroll);
         });
-
-        DOM.inputValue.addEventListener('input', () => {
-          clearError();
-          if (!DOM.inputValue.value.trim()) {
-            renderEmptyState();
+        DOM.inputValue.addEventListener('focus', prepareValueEntry);
+        DOM.inputValue.addEventListener('beforeinput', (event) => {
+          if (event.inputType?.startsWith('insert')) selectForFirstEdit();
+        });
+        DOM.inputValue.addEventListener('paste', selectForFirstEdit);
+        DOM.inputValue.addEventListener('compositionstart', selectForFirstEdit);
+        DOM.inputValue.addEventListener('input', handleValueInput);
+        DOM.inputValue.addEventListener('blur', (event) => {
+          if (UI_STATE.pointerControl) {
+            UI_STATE.deferredBlur = true;
+            return;
           }
+          if (calculateAndRender() && !event.relatedTarget) scrollToResult();
         });
 
-        DOM.inputValue.addEventListener('blur', () => {
-          if (hasValidNonZeroInput()) {
-            calculateAndRender(true);
-          } else {
-            refreshEmptyStateIfNeeded();
-          }
-        });
-
-        DOM.calculateButton.addEventListener('click', () => calculateAndRender(true));
+        DOM.calculateButton.addEventListener('click', () => calculateAndRender({
+          shouldScroll: true, required: true, restoreFocus: true
+        }));
         DOM.clearButton.addEventListener('click', clearForm);
-
-        document.addEventListener('keydown', (event) => {
-          if (event.key === 'Enter' && document.activeElement && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) {
-            event.preventDefault();
-            calculateAndRender(true);
-          }
-        });
+        document.addEventListener('pointerdown', (event) => {
+          UI_STATE.pointerControl = event.target.closest('button, select, summary');
+        }, true);
+        document.addEventListener('click', completePointerAction);
+        document.addEventListener('pointercancel', completePointerAction);
+        document.addEventListener('keydown', completePointerAction, true);
+        runSelfTests();
+        focusControl(DOM.analyte);
       }
 
       window.LabConverterEngine = Object.freeze({
