@@ -421,7 +421,7 @@
       height: 4.2em;
     }
   </style>
-  <!-- AndroidVersionName="1.012.10.16" VersionName="1.012.10.16" AndroidVersionCode="262891602" VersionCode="262891602" BuildTimestamp="2026-10-16T16:02:01-03:00" -->
+  <!-- AndroidVersionName="1.012.10.20" VersionName="1.012.10.20" AndroidVersionCode="262931412" VersionCode="262931412" BuildTimestamp="2026-10-20T14:12:27.435854-03:00" -->
 </head>
 <body>
   <main class="app" id="screenLabConverter">
@@ -517,7 +517,7 @@
       </div>
     </details>
 
-    <div class="signature-block"><strong>Desenvolvido por Adão L. L. Couto</strong><br><span class="version-name">1.012.10.16</span></div>
+    <div class="signature-block"><strong>Desenvolvido por Adão L. L. Couto</strong><br><span class="version-name">1.012.10.20</span></div>
 
     <div class="spacer-3lines" aria-hidden="true"></div>
 
@@ -1007,5 +1007,77 @@
       bootstrap();
     })();
   </script>
+
+<script id="convlab-state-recovery">
+/* Minimal state persistence; does not change or replace the medical conversion engine. */
+(() => {
+  'use strict';
+  const APP_STATE_SCHEMA_VERSION = 1;
+  const KEY = 'convlab.state.v1';
+  const analyte = document.getElementById('analyte');
+  const sourceUnit = document.getElementById('sourceUnit');
+  const inputValue = document.getElementById('inputValue');
+  const resultValue = document.getElementById('resultValue');
+  const calc = document.getElementById('calculateButton');
+  const clear = document.getElementById('clearButton');
+  let restoring = false;
+  let preserveUnknownSchema = false;
+  const readState = () => ({
+    schemaVersion: APP_STATE_SCHEMA_VERSION,
+    analyte: analyte.value,
+    sourceUnit: sourceUnit.value,
+    inputValue: inputValue.value,
+    hasResult: resultValue.textContent.trim() !== '—',
+    scrollY: Math.max(0, Math.floor(window.scrollY || 0))
+  });
+  function save() {
+    if (restoring || preserveUnknownSchema) return;
+    try { localStorage.setItem(KEY, JSON.stringify(readState())); }
+    catch (_error) { /* The calculator remains operational without local storage. */ }
+  }
+  function restore() {
+    let saved;
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      saved = JSON.parse(raw);
+    } catch (_error) { return; }
+    if (!saved || typeof saved !== 'object') return;
+    if (saved.schemaVersion !== APP_STATE_SCHEMA_VERSION) { preserveUnknownSchema = true; return; }
+    restoring = true;
+    try {
+      if (typeof saved.analyte === 'string' && Array.from(analyte.options).some(o => o.value === saved.analyte)) {
+        analyte.value = saved.analyte;
+        analyte.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      if (typeof saved.sourceUnit === 'string' && Array.from(sourceUnit.options).some(o => o.value === saved.sourceUnit)) {
+        sourceUnit.value = saved.sourceUnit;
+        sourceUnit.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      if (typeof saved.inputValue === 'string' && saved.inputValue.length <= 80) {
+        inputValue.value = saved.inputValue;
+        inputValue.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (saved.hasResult && inputValue.value.trim()) {
+        // Existing listener invokes the original calculation without changing factors.
+        calc.click();
+      }
+      if (Number.isFinite(saved.scrollY) && saved.scrollY >= 0) {
+        requestAnimationFrame(() => window.scrollTo(0, Math.min(saved.scrollY, document.documentElement.scrollHeight)));
+      }
+    } finally { restoring = false; }
+  }
+  restore();
+  [analyte, sourceUnit].forEach(el => el.addEventListener('change', save));
+  inputValue.addEventListener('input', save);
+  calc.addEventListener('click', save);
+  clear.addEventListener('click', () => {
+    preserveUnknownSchema = false;
+    try { localStorage.removeItem(KEY); } catch (_error) { /* storage unavailable */ }
+  });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') save(); });
+  window.addEventListener('pagehide', save);
+})();
+</script>
 </body>
 </html>
