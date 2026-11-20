@@ -40,14 +40,14 @@
       font-family: Arial, Helvetica, sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: 18px 12px 28px;
+      padding: 24px 16px 0;
     }
 
     .app {
-      width: min(920px, 100%);
+      width: min(980px, 100%);
       margin: 0 auto;
       display: grid;
-      gap: 16px;
+      gap: 20px;
     }
 
     .card {
@@ -195,8 +195,8 @@
     input:focus,
     select:focus {
       background: #ffffff;
-      border-color: #5a93d6;
-      box-shadow: 0 0 0 4px rgba(90, 147, 214, 0.16);
+      border-color: #2563A8;
+      box-shadow: 0 0 0 2px #DBEAFE;
     }
 
     .actions {
@@ -240,7 +240,7 @@
     .btn-back-to-top svg { width: 22px; height: 22px; fill: none;
       stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
     #resultCard { scroll-margin-top: 16px; }
-    .result-return-row { display:flex; justify-content:flex-end; margin-top:-4px; margin-bottom:-4px; }
+    .result-return-row { display:flex; justify-content:flex-end; margin:-4px 0 0; }
 
     button {
       min-height: 48px;
@@ -284,7 +284,7 @@
 
     .result-panel {
       display: grid;
-      gap: 14px;
+      gap: 16px;
     }
 
     .result-box,
@@ -417,12 +417,12 @@
     }
 
     @media (max-width: 860px) {
-      .layout { grid-template-columns: 1fr; }
+      .layout { grid-template-columns: 1fr; gap: 20px; }
     }
 
     @media (max-width: 640px) {
-      body { padding: 14px 10px max(64px, env(safe-area-inset-bottom)); }
-      .app { gap: 14px; }
+      body { padding: 24px 16px 0; }
+      .app { gap: 20px; }
       .card { border-radius: var(--radius-xl); }
       #sectionInput .grid { padding: 16px 16px 0; }
       #sectionInput .actions { margin: 16px; }
@@ -526,8 +526,77 @@
     .reference-content a{color:#1456a0;overflow-wrap:anywhere}
     #analyteContextHint{color:var(--primary-strong)}
     @media(max-width:370px){.header-controls{gap:7px}.header-controls button{font-size:.86rem;padding:9px 9px}.language-control{gap:4px}.language-control label{font-size:.84rem}/* Preservar largura automática e fonte canônica do seletor */}
-  </style>
-  <!-- AndroidVersionName="1.014.11.01" VersionName="1.014.11.01" AndroidVersionCode="263020943" VersionCode="263020943" BuildTimestamp="2026-10-29T17:30:00-03:00" -->
+  
+/* Ajustes de interface: navegação, barras legais e espaçamento inferior. */
+#sectionHero > p#appSubtitle { margin-top:12px; }
+.header-controls { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; column-gap:10px; row-gap:8px; }
+.header-controls > .language-control, .header-controls > .idioma-control { flex:0 0 100%; justify-content:center; }
+.header-controls > button { white-space:nowrap; flex:0 0 auto; }
+.header-controls > #btnSair { min-height:44px; }
+.legal-disclaimer.privacy-policy-link {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:11px 13px; margin-top:12px; text-decoration:none;
+  color:#5c6f87; font-size:.78rem; font-weight:700;
+}
+.legal-disclaimer.privacy-policy-link svg {
+  width:16px; height:16px; flex:0 0 16px; fill:none; stroke:#7b8da0;
+  stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
+}
+.legal-disclaimer.privacy-policy-link:focus-visible { outline:3px solid #2563a8; outline-offset:2px; }
+.legal-disclaimer.privacy-policy-link + .legal-disclaimer.privacy-policy-link { margin-top:12px; }
+body { padding-bottom:0; }
+.footer-version-row { margin-bottom:42px; }
+.signature-block strong { font-size:clamp(12px,3.5vw,14px); }
+@media (min-width:345px) { .signature-block strong { white-space:nowrap; } }
+.spacer-3lines { height:0; }
+.spacer-3lines { display:none; }
+
+/* Harmonização pontual com o modelo Apgar aprovado: 06/11/2026. */
+.header-controls {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  width:100%;
+  align-items:stretch;
+  justify-content:stretch;
+  gap:10px;
+  padding:0;
+  margin:-6px 0 0;
+}
+.header-controls > #clearButton,
+.header-controls > #btnSair {
+  width:100%;min-width:0;min-height:44px;
+  flex:initial;
+  box-sizing:border-box;
+  border-radius:10px;
+  padding:10px 12px;
+  font-family:inherit;font-size:1rem;font-weight:700;
+  white-space:nowrap;
+  border:1px solid #d6e1eb;background:#eef3f8;color:#35506b;
+}
+.header-controls > #clearButton:hover,
+.header-controls > #btnSair:hover {background:#cbd5e1;}
+.header-controls > .language-control,
+.language-control[hidden] {display:none !important;}
+@media(max-width:350px) {
+ .header-controls > #clearButton, .header-controls > #btnSair {font-size:.90rem;padding:10px 6px;}
+}
+.legal-bars-group {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:0;
+  margin-top:0;
+}
+.legal-bars-group > .legal-disclaimer,
+.legal-bars-group > a.legal-disclaimer {
+  margin:0 !important;
+  width:100%;
+  box-sizing:border-box;
+}
+
+#sectionHero #appSubtitle {margin-top:12px;}
+</style>
+  <!-- AndroidVersionName="1.15.11.07" VersionName="1.15.11.07" AndroidVersionCode="263112055" VersionCode="263112055" BuildTimestamp="2026-11-07T20:55:13-03:00" -->
 </head>
 <body>
   <main class="app" id="screenLabConverter">
@@ -539,7 +608,8 @@
 
     <div class="header-controls">
       <button class="btn-secondary" id="clearButton" type="button">Limpar dados</button>
-      <div class="language-control">
+      <button type="button" class="btn-secondary" id="btnSair">Sair</button>
+      <div class="language-control" hidden aria-hidden="true">
         <label for="languageSelect" id="languageLabel">Idioma</label>
         <select id="languageSelect" aria-label="Selecionar idioma">
           <option value="pt-BR">Português</option>
@@ -634,16 +704,16 @@
               </div>
             </div>
           </div>
+          <div class="result-return-row">
+            <button class="btn-back-to-top" id="resultBackToTopButton" type="button" aria-label="Voltar ao início" title="Voltar ao início">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            </button>
+          </div>
         </div>
       </section>
     </section>
 
-    <div class="result-return-row">
-      <button class="btn-back-to-top" id="resultBackToTopButton" type="button" aria-label="Voltar ao início" title="Voltar ao início">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-      </button>
-    </div>
-
+    <div class="legal-bars-group">
     <details class="legal-disclaimer legal-disclaimer-collapsible" id="referencesDetails">
       <summary id="referencesSummary">Referências</summary>
       <div class="legal-disclaimer-content reference-content">
@@ -664,8 +734,18 @@
       </div>
     </details>
 
+    <a class="legal-disclaimer privacy-policy-link" id="privacyPolicyLink" href="https://adaocouto.github.io/pp/" rel="noopener noreferrer">
+  <span id="privacyPolicyText" data-i18n-pt="Política de Privacidade" data-i18n-en="Privacy Policy">Política de Privacidade</span>
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 5h6v6M19 5l-9 9M19 13v6H5V5h6"/></svg>
+</a>
+<a class="legal-disclaimer terms-service-link privacy-policy-link" id="termsServiceLink" href="https://adaocouto.github.io/ts/" rel="noopener noreferrer">
+  <span id="termsServiceText" data-i18n-pt="Termos de Serviço" data-i18n-en="Terms of Service">Termos de Serviço</span>
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 5h6v6M19 5l-9 9M19 13v6H5V5h6"/></svg>
+</a>
+    </div><!-- /legal-bars-group -->
+
     <div class="footer-version-row">
-      <div class="signature-block"><strong>Desenvolvido por Adão L. L. Couto</strong><br><span class="version-name">1.014.11.01</span></div>
+      <div class="signature-block"><strong>Desenvolvido por Adão L. L. Couto</strong><br><span class="version-name">1.15.11.07</span></div>
       <button class="btn-back-to-top" id="bottomBackToTopButton" type="button" aria-label="Voltar ao início" title="Voltar ao início">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
       </button>
@@ -675,7 +755,8 @@
 
   </main>
 
-  <script>
+  <script type="application/json" id="convlab-android-i18n">{"pt-BR":{"back_to_top":"Voltar ao início","heading":"Conversor Laboratorial","subtitle":"Conversões de unidades laboratoriais","input":"Entrada","analyte":"Molécula","source_unit":"Unidade de origem","target_unit":"Unidade de destino","value":"Valor","value_hint":"Aceita vírgula ou ponto decimal.","value_placeholder":"Ex.: 100 ou 4,8","calculate":"Calcular","clear":"Limpar","clear_bottom":"Limpar","swap_units":"Inverter unidades","decimal_join":"O separador decimal foi excluído e os dígitos se uniram. Confira o número e confirme com Calcular ou Enter antes de converter.","result":"Resultado","conversion":"Conversão","enter_value":"Informe um valor e selecione as unidades.","details":"Detalhes","source":"Origem","target":"Destino","factor":"Coeficiente usado","success":"Conversão concluída","corresponds":"correspondem a","reference":"Referências","available":"Disponível em:","accessed":"Acesso em: 29 out. 2026.","legal_heading":"Aviso Legal e Isenção de Responsabilidade","developer":"Desenvolvido por Adão L. L. Couto","language":"Idioma","select_language":"Selecionar idioma","invalid_analyte":"Selecione uma molécula válida.","positive":"Informe um valor numérico maior ou igual a zero.","required_value":"Informe um valor para converter.","incomplete_number":"Complete o número antes de calcular (separador decimal ou expoente incompleto).","invalid_number":"Número inválido. Use algarismos e somente um separador decimal (vírgula ou ponto), sem espaços internos.","incompatible":"A combinação de unidades não é compatível com a molécula selecionada.","calc_error":"Não foi possível calcular.","bun_context":"BUN é expresso em mg/dL de nitrogênio ureico; o valor em mmol/L corresponde à ureia (não ao nitrogênio isolado).","urea":"Ureia","bun_name":"BUN (nitrogênio ureico)","phosphorus":"Fósforo inorgânico","legal_text":"Este software e todas as informações nele contidas são fornecidos exclusivamente com propósitos educacionais e de auxílio à referência médica. ESTE SISTEMA NÃO SUBSTITUI O JULGAMENTO CLÍNICO INDIVIDUAL, A ANAMNESE E O EXAME FÍSICO. As informações aqui apresentadas não devem ser utilizadas isoladamente para o diagnóstico, conduta ou tratamento de pacientes. A responsabilidade final por qualquer decisão clínica, prescrição ou intervenção é exclusiva do profissional de saúde assistente, devidamente habilitado. Os desenvolvedores não garantem a precisão absoluta de todos os dados e isentam-se de responsabilidade por quaisquer danos diretos, indiretos, materiais ou morais que resultem do uso inadequado, interpretação equivocada ou confiança exclusiva nas informações deste sistema. Pacientes e indivíduos leigos que utilizarem este software devem sempre buscar a orientação de um médico qualificado antes de tomar qualquer decisão sobre sua saúde.","document_title":"Conversor Laboratorial — mg/dL ↔ mmol/L","clear_data":"Limpar dados","exit":"Sair","privacy_policy":"Política de Privacidade","terms_of_service":"Termos de Serviço","recovery_data_title":"Dados recuperados","recovery_data_line1":"Dados da sessão anterior recuperados. Confira as informações antes de continuar.","recovery_result_title":"Resultados anteriores","recovery_result_line1":"Dados e resultados anteriores foram recuperados.","recovery_result_line2":"Confirme as informações antes de utilizar os resultados.","recovery_review_title":"Dados que exigem revisão","recovery_review_line1":"Alguns dados recuperados precisam de revisão. Verifique os campos destacados.","browser_exit_warning":"O navegador não permite fechar esta aba automaticamente. Feche-a pelos controles do navegador.","analyte_sodium":"Sódio","analyte_potassium":"Potássio","analyte_calcium":"Cálcio","analyte_magnesium":"Magnésio","analyte_chloride":"Cloreto","analyte_creatinine":"Creatinina","analyte_bilirubin":"Bilirrubina","analyte_uric_acid":"Ácido úrico","analyte_cholesterol":"Colesterol","analyte_triglycerides":"Triglicerídeos","analyte_glucose":"Glicose","analyte_lactate":"Lactato","reference_labcorp":"LABORATORY CORPORATION OF AMERICA.","reference_labcorp_title":"SI Unit Conversion Table","reference_cdc":"CENTERS FOR DISEASE CONTROL AND PREVENTION.","reference_cdc_title":"Standard Biochemistry Profile (BIOPRO_E): NHANES 2007–2008","reference_ciaaw":"COMMISSION ON ISOTOPIC ABUNDANCES AND ATOMIC WEIGHTS.","reference_ciaaw_title":"Standard Atomic Weights 2024","reference_nist":"NATIONAL INSTITUTE OF STANDARDS AND TECHNOLOGY.","reference_nist_title":"Urea","reference_tietz":"RIFAI, Nader; HORVATH, Andrea R.; WITTWER, Carl T. (ed.).","reference_tietz_title":"Tietz Textbook of Clinical Chemistry and Molecular Diagnostics","reference_labcorp_biblio":". Labcorp, [s. d.].","reference_cdc_biblio":". Publicado em: set. 2009. Revisado em: jun. 2010.","reference_ciaaw_biblio":". CIAAW, 2024.","reference_nist_biblio":". NIST Chemistry WebBook, Standard Reference Database 69, [s. d.].","reference_tietz_biblio":". 6. ed. St. Louis: Elsevier, 2018.","pt_language_name":"Português","en_language_name":"English"}}</script>
+<script>
     (() => {
       'use strict';
 
@@ -743,7 +824,7 @@
           backToTop: 'Voltar ao início',
           heading: 'Conversor Laboratorial', subtitle: 'Conversões de unidades laboratoriais', input: 'Entrada', analyte: 'Molécula',
           sourceUnit: 'Unidade de origem', targetUnit: 'Unidade de destino', value: 'Valor',
-          valueHint: 'Aceita vírgula ou ponto decimal.', valuePlaceholder: 'Ex.: 100 ou 4,8', calculate: 'Calcular', clear: 'Limpar dados', clearBottom: 'Limpar',
+          valueHint: 'Aceita vírgula ou ponto decimal.', valuePlaceholder: 'Ex.: 100 ou 4,8', calculate: 'Calcular', clear: 'Limpar', clearBottom: 'Limpar',
            swapUnits: 'Inverter unidades', decimalJoin: 'O separador decimal foi excluído e os dígitos se uniram. Confira o número e confirme com Calcular ou Enter antes de converter.',
           result: 'Resultado', conversion: 'Conversão', enterValue: 'Informe um valor e selecione as unidades.',
           details: 'Detalhes', source: 'Origem', target: 'Destino', factor: 'Coeficiente usado',
@@ -765,7 +846,7 @@
           backToTop: 'Back to top',
           heading: 'Laboratory Converter', subtitle: 'Laboratory unit conversions', input: 'Input', analyte: 'Molecule',
           sourceUnit: 'From unit', targetUnit: 'To unit', value: 'Value',
-          valueHint: 'Comma or period decimal separators accepted.', valuePlaceholder: 'e.g., 100 or 4.8', calculate: 'Calculate', clear: 'Clear data', clearBottom: 'Clear',
+          valueHint: 'Comma or period decimal separators accepted.', valuePlaceholder: 'e.g., 100 or 4.8', calculate: 'Calculate', clear: 'Clear', clearBottom: 'Clear',
            swapUnits: 'Swap units', decimalJoin: 'The decimal separator was removed and the digits joined together. Check the number and confirm with Calculate or Enter before converting.',
           result: 'Result', conversion: 'Conversion', enterValue: 'Enter a value and select the units.',
           details: 'Details', source: 'From', target: 'To', factor: 'Conversion factor',
@@ -792,11 +873,20 @@
         glucose: 'Glucose', lactate: 'Lactate'
       });
       let currentLanguage = 'pt-BR';
-      function t(key) { return TEXTS[currentLanguage][key]; }
+      const ANDROID_I18N_KEY_MAP = Object.freeze({"backToTop":"back_to_top","heading":"heading","subtitle":"subtitle","input":"input","analyte":"analyte","sourceUnit":"source_unit","targetUnit":"target_unit","value":"value","valueHint":"value_hint","valuePlaceholder":"value_placeholder","calculate":"calculate","clear":"clear","clearBottom":"clear_bottom","swapUnits":"swap_units","decimalJoin":"decimal_join","result":"result","conversion":"conversion","enterValue":"enter_value","details":"details","source":"source","target":"target","factor":"factor","success":"success","corresponds":"corresponds","reference":"reference","available":"available","accessed":"accessed","legalHeading":"legal_heading","developer":"developer","language":"language","selectLanguage":"select_language","invalidAnalyte":"invalid_analyte","positive":"positive","requiredValue":"required_value","incompleteNumber":"incomplete_number","invalidNumber":"invalid_number","incompatible":"incompatible","calcError":"calc_error","bunContext":"bun_context","urea":"urea","bunName":"bun_name","phosphorus":"phosphorus","legalText":"legal_text"});
+      const androidTextOverrides = Object.create(null);
+      function t(key) {
+        const resource = ANDROID_I18N_KEY_MAP[key];
+        return (currentLanguage === 'pt-BR' && resource &&
+          Object.prototype.hasOwnProperty.call(androidTextOverrides, resource))
+          ? androidTextOverrides[resource] : TEXTS[currentLanguage][key];
+      }
+      const ANDROID_ANALYTE_KEYS = Object.freeze({"sodium": "analyte_sodium", "potassium": "analyte_potassium", "calcium": "analyte_calcium", "magnesium": "analyte_magnesium", "chloride": "analyte_chloride", "creatinine": "analyte_creatinine", "bilirubin": "analyte_bilirubin", "uric_acid": "analyte_uric_acid", "cholesterol": "analyte_cholesterol", "triglycerides": "analyte_triglycerides", "glucose": "analyte_glucose", "lactate": "analyte_lactate"});
       function displayAnalyte(analyte) {
         if (analyte.id === 'bun') return t('bunName');
         if (analyte.id === 'phosphate') return t('phosphorus');
-        return currentLanguage === 'en-US' ? EN_ANALYTE_LABELS[analyte.id] : analyte.label;
+        return currentLanguage === 'en-US' ? EN_ANALYTE_LABELS[analyte.id] :
+          (window.ConvLabAndroidI18n?.get(ANDROID_ANALYTE_KEYS[analyte.id]) || analyte.label);
       }
       function displayAnalyteAtUnit(analyte, unit) {
         return analyte.id === 'bun' && unit !== 'mgdl' ? t('urea') : displayAnalyte(analyte);
@@ -1196,8 +1286,7 @@
         UI_STATE.separatorJoinPending = false;
         updateSeparatorSafetyNotice();
         calculateAndRender({ silent: true });
-        // A real input event is necessary for the existing state-recovery listener.
-        DOM.inputValue.dispatchEvent(new Event('input', { bubbles: true }));
+        // Persiste a inversão sem tratar a mudança automática como uma nova edição manual.
         DOM.sourceUnit.dispatchEvent(new Event('convlab:swapped', { bubbles: false }));
       }
 
@@ -1397,7 +1486,7 @@
       function translateStatic() {
         document.documentElement.lang = currentLanguage;
         document.title = currentLanguage === 'en-US'
-          ? 'Laboratory Converter — mg/dL ↔ mmol/L' : 'Conversor Laboratorial — mg/dL ↔ mmol/L';
+          ? 'Laboratory Converter — mg/dL ↔ mmol/L' : (window.ConvLabAndroidI18n?.get('document_title') || 'Conversor Laboratorial — mg/dL ↔ mmol/L');
         STATIC_LABELS.forEach(([selector, key]) => {
           const node = document.querySelector(selector);
           if (node) node.textContent = t(key);
@@ -1514,7 +1603,7 @@
         document.addEventListener('pointercancel', completePointerAction);
         document.addEventListener('keydown', completePointerAction, true);
         runSelfTests();
-        setLanguage(readLanguagePreference(), false);
+        setLanguage('pt-BR', false);
         // Initial focus is intentionally omitted to avoid keyboard opening and viewport movement.
       }
 
@@ -1531,6 +1620,26 @@
         runSelfTests
       });
 
+      // Native Android resources are the authoritative pt-BR source in WebView.
+      // English is an existing standalone-only UI choice; do not overlay pt-BR strings on it.
+      const VALID_ANDROID_KEYS = new Set(Object.keys(JSON.parse(document.getElementById('convlab-android-i18n').textContent)['pt-BR']));
+      window.ConvLabAndroidI18n = Object.freeze({
+        get(resourceKey) {
+          return currentLanguage === 'pt-BR' &&
+            Object.prototype.hasOwnProperty.call(androidTextOverrides, resourceKey)
+            ? androidTextOverrides[resourceKey] : null;
+        },
+        applyAndroidStrings(value) {
+          if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+          for (const [key, text] of Object.entries(value)) {
+            if (VALID_ANDROID_KEYS.has(key) && typeof text === 'string' && text.length <= 12000)
+              androidTextOverrides[key] = text;
+          }
+          setLanguage(currentLanguage, false);
+          document.dispatchEvent(new Event('convlab:android-strings-applied'));
+          return true;
+        }
+      });
       bootstrap();
     })();
   </script>
@@ -1558,9 +1667,9 @@
   function showNotice(kind) {
     const en = document.getElementById('languageSelect').value === 'en-US';
     const content = {
-      data: en ? ['Recovered data', 'Data from the previous session was recovered. Check the information before continuing.', ''] : ['Dados recuperados', 'Dados da sessão anterior recuperados. Confira as informações antes de continuar.', ''],
-      result: en ? ['Previous results', 'Previous data and results were recovered.', 'Confirm the information before using the results.'] : ['Resultados anteriores', 'Dados e resultados anteriores foram recuperados.', 'Confirme as informações antes de utilizar os resultados.'],
-      review: en ? ['Data requiring review', 'Some recovered data needs review. Check the highlighted fields.', ''] : ['Dados que exigem revisão', 'Alguns dados recuperados precisam de revisão. Verifique os campos destacados.', '']
+      data: en ? ['Recovered data', 'Data from the previous session was recovered. Check the information before continuing.', ''] : [(window.ConvLabAndroidI18n?.get('recovery_data_title') || 'Dados recuperados'), (window.ConvLabAndroidI18n?.get('recovery_data_line1') || 'Dados da sessão anterior recuperados. Confira as informações antes de continuar.'), ''],
+      result: en ? ['Previous results', 'Previous data and results were recovered.', 'Confirm the information before using the results.'] : [(window.ConvLabAndroidI18n?.get('recovery_result_title') || 'Resultados anteriores'), (window.ConvLabAndroidI18n?.get('recovery_result_line1') || 'Dados e resultados anteriores foram recuperados.'), (window.ConvLabAndroidI18n?.get('recovery_result_line2') || 'Confirme as informações antes de utilizar os resultados.')],
+      review: en ? ['Data requiring review', 'Some recovered data needs review. Check the highlighted fields.', ''] : [(window.ConvLabAndroidI18n?.get('recovery_review_title') || 'Dados que exigem revisão'), (window.ConvLabAndroidI18n?.get('recovery_review_line1') || 'Alguns dados recuperados precisam de revisão. Verifique os campos destacados.'), '']
     }[kind];
     notice.dataset.kind = kind;
     noticeIcon.textContent = kind === 'review' ? '⚠' : 'ⓘ';
@@ -1633,8 +1742,9 @@
   requestAnimationFrame(() => window.scrollTo(0,0));
   window.addEventListener('pageshow', () => requestAnimationFrame(() => window.scrollTo(0,0)));
   document.getElementById('languageSelect').addEventListener('change', () => { if (noticeKind) showNotice(noticeKind); });
+  document.addEventListener('convlab:android-strings-applied', () => { if (noticeKind) showNotice(noticeKind); });
   [analyte, sourceUnit, targetUnit].forEach(el => el.addEventListener('change', () => { cleared=false; noticeKind=null; hideNotice(); save(); }));
-  sourceUnit.addEventListener('convlab:swapped', () => { cleared=false; noticeKind=null; hideNotice(); save(); });
+  sourceUnit.addEventListener('convlab:swapped', () => { cleared=false; save(); });
   inputValue.addEventListener('input', () => { cleared=false; noticeKind=null; hideNotice(); save(); });
   calc.addEventListener('click', () => { cleared=false; noticeKind=null; hideNotice(); save(); });
   document.addEventListener('convlab:cleared', () => {
@@ -1644,6 +1754,72 @@
   });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') save(); });
   window.addEventListener('pagehide', save);
+})();
+</script>
+<script>
+/* Controles de navegação: sem modificar as rotinas clínicas ou de limpeza. */
+(() => {
+  'use strict';
+  const lang = document.getElementById('languageSelect');
+  const clear = document.getElementById('clearButton');
+  const exit = document.getElementById('btnSair');
+  const privacy = document.getElementById('privacyPolicyText');
+  const terms = document.getElementById('termsServiceText');
+  function updateLabels() {
+    const en = lang && lang.value === 'en-US';
+    if (clear) clear.textContent = en ? 'Clear data' : (window.ConvLabAndroidI18n?.get('clear_data') || 'Limpar dados');
+    if (exit) exit.textContent = en ? 'Exit' : (window.ConvLabAndroidI18n?.get('exit') || 'Sair');
+    if (privacy) privacy.textContent = en ? 'Privacy Policy' : (window.ConvLabAndroidI18n?.get('privacy_policy') || 'Política de Privacidade');
+    if (terms) terms.textContent = en ? 'Terms of Service' : (window.ConvLabAndroidI18n?.get('terms_of_service') || 'Termos de Serviço');
+  }
+  if (lang) lang.addEventListener('change', updateLabels);
+  document.addEventListener('convlab:android-strings-applied', updateLabels);
+  window.addEventListener('pageshow', updateLabels);
+  updateLabels();
+  if (exit) exit.addEventListener('click', () => {
+    // A Activity Android deve expor AndroidApp.exitApp() quando apropriado.
+    try {
+      if (window.AndroidApp && typeof window.AndroidApp.exitApp === 'function') {
+        window.AndroidApp.exitApp();
+        return;
+      }
+    } catch (_error) { /* Sem ponte Android disponível. */ }
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+    try { window.close(); } catch (_error) { /* Navegador bloqueou o fechamento. */ }
+    if (!window.closed) {
+      window.alert(lang && lang.value === 'en-US'
+        ? 'The browser cannot close this tab automatically. Close it using the browser controls.'
+        : (window.ConvLabAndroidI18n?.get('browser_exit_warning') || 'O navegador não permite fechar esta aba automaticamente. Feche-a pelos controles do navegador.'));
+    }
+  });
+})();
+</script>
+
+<script id="convlab-android-references">
+/* Only native resource overlays, no changes to the standalone clinical interface. */
+(() => {
+  'use strict';
+  const fields = [["reference_labcorp", ".reference-content ol > li:nth-child(1)", "firstChild"], ["reference_labcorp_title", ".reference-content ol > li:nth-child(1) em", "textContent"], ["reference_cdc", ".reference-content ol > li:nth-child(2)", "firstChild"], ["reference_cdc_title", ".reference-content ol > li:nth-child(2) em", "textContent"], ["reference_ciaaw", ".reference-content ol > li:nth-child(3)", "firstChild"], ["reference_ciaaw_title", ".reference-content ol > li:nth-child(3) em", "textContent"], ["reference_nist", ".reference-content ol > li:nth-child(4)", "firstChild"], ["reference_nist_title", ".reference-content ol > li:nth-child(4) em", "textContent"], ["reference_tietz", ".reference-content ol > li:nth-child(5)", "firstChild"], ["reference_tietz_title", ".reference-content ol > li:nth-child(5) em", "textContent"], ["reference_labcorp_biblio", ".reference-content ol > li:nth-child(1) em", "nextSibling"], ["reference_cdc_biblio", ".reference-content ol > li:nth-child(2) em", "nextSibling"], ["reference_ciaaw_biblio", ".reference-content ol > li:nth-child(3) em", "nextSibling"], ["reference_nist_biblio", ".reference-content ol > li:nth-child(4) em", "nextSibling"], ["reference_tietz_biblio", ".reference-content ol > li:nth-child(5) em", "nextSibling"]];
+  function translateReferences() {
+    for (const [resource, selector, mode] of fields) {
+      const text = window.ConvLabAndroidI18n?.get(resource);
+      if (text === null || text === undefined) continue;
+      const el = document.querySelector(selector);
+      if (!el) continue;
+      if (mode === 'firstChild' && el.firstChild?.nodeType === Node.TEXT_NODE) el.firstChild.nodeValue = text;
+      if (mode === 'textContent') el.textContent = text;
+      if (mode === 'nextSibling' && el.nextSibling?.nodeType === Node.TEXT_NODE) el.nextSibling.nodeValue = text + ' ';
+    }
+  }
+    const pt = document.querySelector('#languageSelect option[value="pt-BR"]');
+    const en = document.querySelector('#languageSelect option[value="en-US"]');
+    if (pt) pt.textContent = window.ConvLabAndroidI18n?.get('pt_language_name') || 'Português';
+    if (en) en.textContent = window.ConvLabAndroidI18n?.get('en_language_name') || 'English';
+
+  document.addEventListener('convlab:android-strings-applied', translateReferences);
 })();
 </script>
 </body>
